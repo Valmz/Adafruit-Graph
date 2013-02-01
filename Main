@@ -10,6 +10,135 @@
 #include <Adafruit_ST7735.h> // Hardware-specific library
 #include <SPI.h> //I dont know what this is but I need it to compile correctly
 
+//Screen is 128 by 160 pixels
+
+Adafruit_ST7735 tft = Adafruit_ST7735(cs, dc, mosi, sclk, rst);
+int pixelHeight[160];
+int rate = 60; //In pixels per second; total width of the screen is 160 pixels, the slower  the rate, the more accurate the reading.
+double maxVolt = 1000;
+int scale = 5;
+int baseLine = 60;
+int rotation = 2;//Rotation values can be 0,1,2,3, each one is a rotation of 90 degrees, 0 and 2 are landscape; 1, and 3 are portrait
+int backColor = ST7735_BLACK; //Colors can be ST7735_BLACK, ST7735_WHITE, ST7735_BLUE, ST7735_RED, ST7735_GREEN,unsig
+int lineColor = ST7735_WHITE;//               ST7735_CYAN, ST7735_MAGENTA, ST7735_YELLOW, 
+
+//one time the color of the lines randomly changed from white to yellow 
+
+void setup(void) { 
+  // LED on Pin 13 for digital on/off while writing
+  pinMode(A0, INPUT);
+
+  // Open the serial connection, 9600 baud
+  Serial.begin(9600);
+  
+  // If your TFT's plastic wrap has a Red Tab, use the following:
+  tft.initR(INITR_REDTAB);   // initialize a ST7735R chip, red tab
+  // If your TFT's plastic wrap has a Green Tab, use the following:
+  //tft.initR(INITR_GREENTAB); // initialize a ST7735R chip, green tab
+  
+  tft.setRotation(rotation);
+  tft.fillScreen(backColor); //Start with the screen completely black
+  //testdrawtext("Initializing...", 0x07E0); //error: 'class Adafruit_ST7735 has no member names 'testdrawtest', 'testdrawtext' was not declared in this scope
+  //tft.drawPixel(tft.width()/2, tft.height()/2, ST7735_GREEN); //this is just for reference
+} 
+
+int getReadingAverage (unsigned long timeInit) {
+  int i;
+  int sensorReading=0;
+  int sensorPin = A0;
+   
+  for (i=0;(millis()-timeInit)<(1000/rate);i++) //keep taking averages in the time inverval alloted per pixel by the rate variable, i keeps track of how many in case it is too fast, and to average
+    sensorReading += analogRead(sensorPin);     //Hopefully the Arduino is fast enough to take data and redraw a 160 pixel long line enough times a second to look like fluid motion
+  sensorReading /= i;  
+  
+  return sensorReading;
+}
+
+int getReadingMax (unsigned long timeInit){
+   int sensorReading=0;
+   int sensorPin = A0;
+   
+   for(;(millis()-timeInit)<(1000/rate);){
+     if (analogRead(sensorPin)>sensorReading)
+       sensorReading = analogRead(sensorPin);
+   }
+   
+   return sensorReading;
+   
+}
+  
+   
+
+void displayReading() {
+  int sensorReading;
+  unsigned long time;
+  int i;
+  int start = 0;
+  
+  
+   //while (Serial.available()>0){} //Eventually we need to make a way to actually turn off the loop
+  for(;true;){
+     
+    for(i=1;i<181;i++){
+     
+      tft.drawLine(baseLine+pixelHeight[i-1],i-1,baseLine+pixelHeight[i],i,ST7735_BLACK);
+    }
+    
+    
+    
+    for(i=1;i<181;i++){
+      time = millis();
+      sensorReading = getReadingAverage(time);
+      pixelHeight[i] = (sensorReading/scale); // 5/1023 is the conversion factor. Just making everything is scaled properly
+      //if (pixelHeight[i] > maxVolt) //a voltage that is greater than the maximum allowed by user will cap off
+  //pixelHeight[i] = tft.height();
+      
+      tft.drawLine(baseLine+pixelHeight[i-1],i-1,baseLine+pixelHeight[i],i,lineColor);
+    }
+ 
+  //for (i=1; i<=160 && ((start-i)%160)>=0; i++){ //go through every pixel on the x-axis. ===== check to make sure its a real pixel to save time and it might give and error if you try to turn on a pixel at a negative coordinate
+
+    //tft.drawPixel(pixelHeight[(start-i  )%160],i, ST7735_BLACK); //erase pixel at this point
+    //tft.drawPixel(pixelHeight[(start-i+1)%160],i, ST7735_WHITE); //draw pixel one pixel to the right
+
+    //}
+    //tft.drawPixel(pixel,i, ST7735_WHITE);
+    //pixelHeight[start%160] = pixel;
+    
+  
+  //what is stack overflow
+  //what is overload    
+
+    
+  }
+
+  
+}
+  
+  
+
+void loop() {  
+ 
+ // int startbyte;        // start byte, init measurement  
+  
+   //listen until we get a '255' on the serial line as a 'trigger'
+//  if (Serial.available() > 0) {
+//    startbyte = Serial.read(); 
+     
+//    if (startbyte == 255)  // if it is the trigger, prep & send a reading
+      displayReading();
+}     // You can use any (4 or) 5 pins\
+// Attack  sclk to pin 4, mosi to pin 5, cs to pin 6, ds to pin 7, rst to pin 8
+#define sclk 4
+#define mosi 5
+#define cs   6
+#define dc   7
+#define rst  8  // you can also connect this to the Arduino reset
+
+#include <Adafruit_GFX.h>    // Core graphics library
+#include <Adafruit_ST7735.h> // Hardware-specific library
+#include <SPI.h> //I dont know what this is but I need it to compile correctly
+
 //Screen is 128 by 180 pixels
 
 Adafruit_ST7735 tft = Adafruit_ST7735(cs, dc, mosi, sclk, rst);
