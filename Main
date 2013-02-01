@@ -42,7 +42,7 @@ int getReading (unsigned long timeInit) {
   int sensorPin = A0;
    
   for (i=0;(millis()-timeInit)<(1000/rate);i++) //keep taking averages in the time inverval alloted per pixel by the rate variable, i keeps track of how many in case it is too fast, and to average
-    sensorReading += analogRead(sensorPin);
+    sensorReading += analogRead(sensorPin);     //Hopefully the Arduino is fast enough to take data and redraw a 180 pixel long line enough times a second to look like fluid motion
   sensorReading /= i;  
   
   return sensorReading;
@@ -53,39 +53,42 @@ void displayReading() {
   int sensorReading;
   unsigned long time;
   int i;
-  int counter;
   int start = 0;
-  
-  
-  
-  //while (Serial.available()>0){} //Eventually we need to make a way to actually turn off the loop
-  tft.fillScreen(ST7735_BLACK); 
-  
-  for(;true;){
-  i=1;
-  counter = start%180;
-  time = millis();
-  sensorReading = getReading(time);
-  pixelHeight[counter] = (sensorReading*5/1023)*tft.height()/maxVolt; // 5/1023 is the conversion factor
-  if (pixelHeight[counter] > maxVolt) //a voltage that is greater than the maximum allowed by user will cap off
-  pixelHeight[counter] = tft.height();
+  int pixel;
   
  
-  for (counter; i<180; counter--){ //go through every pixel on the x-axis
-    if ((start - i +1) >0) {//check to make sure its a real pixel to save time
-    tft.drawPixel(abs(counter+1), pixelHeight[counter], ST7735_BLACK); //erase pixel at this point
-    tft.drawPixel(abs(counter+2), pixelHeight[counter], ST7735_WHITE); //draw pixel one pixel to the right
+  tft.fillScreen(ST7735_BLACK); 
+  
+  
+   //while (Serial.available()>0){} //Eventually we need to make a way to actually turn off the loop
+  for(;true;){
+  time = millis();
+  sensorReading = getReading(time);
+  pixel = (sensorReading*5/1023)*tft.height()/maxVolt; // 5/1023 is the conversion factor. Just making everything is scaled properly
+  if (pixel > maxVolt) //a voltage that is greater than the maximum allowed by user will cap off
+  pixel = tft.height();
+  
+ 
+  for (i=1; i<=180 && ((start-i)%180)>=0; i++){ //go through every pixel on the x-axis. ===== check to make sure its a real pixel to save time and it might give and error if you try to turn on a pixel at a negative coordinate
+
+    tft.drawPixel(i, pixelHeight[(start-i  )%180], ST7735_BLACK); //erase pixel at this point
+    tft.drawPixel(i, pixelHeight[(start-i+1)%180], ST7735_WHITE); //draw pixel one pixel to the right
 
     }
+    tft.drawPixel(i, pixel, ST7735_WHITE);
+    pixelHeight[start%180] = pixel;
+    
+    
+    start++; //right now start can get idefinetly high, but too many things work out because of this I decide to let it go. This is a reminder to fix this later if it is necessary/helpful
+  //what is stack overflow
+  //what is overload    
+    
   }
-  start += 1;
-  
 
-  }
-  
   
 }
-
+  
+  
 
 void loop() {  
  
