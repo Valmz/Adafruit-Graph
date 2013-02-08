@@ -40,7 +40,15 @@ void setup(void) {
   tft.fillScreen(backColor); //Start with the screen completely black
   //testdrawtext("Initializing...", 0x07E0); //error: 'class Adafruit_ST7735 has no member names 'testdrawtest', 'testdrawtext' was not declared in this scope
   //tft.drawPixel(tft.width()/2, tft.height()/2, ST7735_GREEN); //this is just for reference
-} 
+
+  setCursor(120, 5)
+  void setTextColor(ST7735_WHITE, backColor);
+  void setTextSize(1);
+  void setTextWrap(false);
+  
+  } 
+
+
 
 int getReadingAverage (unsigned long timeInit) {
   int i;
@@ -75,9 +83,8 @@ void displayReading() {
   int i;
   int start = 0;
   boolean pulse = true;
-  int beatTime = 0;
-  double pulseRate;
-  
+  unsigned long  beatTime = 0;
+  unsigned long	pulseRate;  
   
    //while (Serial.available()>0){} //Eventually we need to make a way to actually turn off the loop
   for(;true;){
@@ -95,15 +102,14 @@ void displayReading() {
       sensorReading = getReadingAverage(time);
       pixelHeight[i] = (sensorReading/scale); // 5/1023 is the conversion factor. Just making everything is scaled properly
       //if (pixelHeight[i] > maxVolt) //a voltage that is greater than the maximum allowed by user will cap off
-  //pixelHeight[i] = tft.height();
+	  //pixelHeight[i] = tft.height();
       
       tft.drawLine(baseLine+pixelHeight[i-1],i-1,baseLine+pixelHeight[i],i,lineColor);
       if (pulse && pixelHeight[i]>=40) {
-       //Serial.print("mark");
         pulseRate = millis();
        pulseRate = (600000000/(pulseRate-beatTime));
-       //Serial.println("pulseRate");
        Serial.println(pulseRate);
+	   tft.print(pulseRate); 
        beatTime = pulseRate;
        pulse = false;
       }
@@ -111,18 +117,6 @@ void displayReading() {
        pulse = true;
     }
  
-  //for (i=1; i<=160 && ((start-i)%160)>=0; i++){ //go through every pixel on the x-axis. ===== check to make sure its a real pixel to save time and it might give and error if you try to turn on a pixel at a negative coordinate
-
-    //tft.drawPixel(pixelHeight[(start-i  )%160],i, ST7735_BLACK); //erase pixel at this point
-    //tft.drawPixel(pixelHeight[(start-i+1)%160],i, ST7735_WHITE); //draw pixel one pixel to the right
-
-    //}
-    //tft.drawPixel(pixel,i, ST7735_WHITE);
-    //pixelHeight[start%160] = pixel;
-    
-  
-  //what is stack overflow
-  //what is overload    
 
     
   }
