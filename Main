@@ -15,16 +15,18 @@
 Adafruit_ST7735 tft = Adafruit_ST7735(cs, dc, mosi, sclk, rst);
 int pixelHeight[160];
 int rate = 60; //In pixels per second; total width of the screen is 160 pixels, the slower  the rate, the more accurate the reading.
-double maxVolt = 1000;
-int scale = 5;
-int baseLine = 60;
+double maxVolt = 5;
+double voltsPerDivision = 1;
+int baseLine = 5;
 int rotation = 2;//Rotation values can be 0,1,2,3, each one is a rotation of 90 degrees, 0 and 2 are landscape; 1, and 3 are portrait
 int backColor = ST7735_BLACK; //Colors can be ST7735_BLACK, ST7735_WHITE, ST7735_BLUE, ST7735_RED, ST7735_GREEN,unsig
-int lineColor = ST7735_WHITE;//               ST7735_CYAN, ST7735_MAGENTA, ST7735_YELLOW, 
+int lineColor = ST7735_WHITE;//               ST7735_CYAN, ST7735_MAGENTA, ST7735_YELLOW,
+
 
 //one time the color of the lines randomly changed from white to yellow 
 
-void setup(void) { 
+void setup(void) {
+int i = 0;
   // LED on Pin 13 for digital on/off while writing
   pinMode(A0, INPUT);
 
@@ -41,16 +43,19 @@ void setup(void) {
   //testdrawtext("Initializing...", 0x07E0); //error: 'class Adafruit_ST7735 has no member names 'testdrawtest', 'testdrawtext' was not declared in this scope
   //tft.drawPixel(tft.width()/2, tft.height()/2, ST7735_GREEN); //this is just for reference
 
-  setCursor(120, 5)
-  void setTextColor(ST7735_WHITE, backColor);
-  void setTextSize(1);
-  void setTextWrap(false);
+  tft.setCursor(120, 5);
+  tft.setTextColor(ST7735_WHITE, backColor);
+  tft.setTextSize(1);
+  tft.setTextWrap(false);
   
+ // for (i;i<(maxVolt/voltsPerDivision);i++){
+  //  int intg = (i*128*voltsPerDivision)/maxVolt ; 
+  //  tft.drawLine(intg,0,intg,10);
   } 
 
 
 
-int getReadingAverage (unsigned long timeInit) {
+long getReadingAverage (unsigned long timeInit) {
   int i;
   int sensorReading=0;
   int sensorPin = A0;
@@ -78,10 +83,10 @@ int getReadingMax (unsigned long timeInit){
    
 
 void displayReading() {
-  int sensorReading;
+  long sensorReading;
+  int disp;
   unsigned long time;
   int i;
-  int start = 0;
   boolean pulse = true;
   unsigned long  beatTime = 0;
   unsigned long	pulseRate;  
@@ -89,26 +94,42 @@ void displayReading() {
    //while (Serial.available()>0){} //Eventually we need to make a way to actually turn off the loop
   for(;true;){
      
-    for(i=1;i<181;i++){
+    for(i=0;i<181;i++){
      
       tft.drawLine(baseLine+pixelHeight[i-1],i-1,baseLine+pixelHeight[i],i,ST7735_BLACK);
 
     }
+  tft.drawLine(25,0,25,10,ST7735_WHITE);
+  tft.drawLine(45,0,45,10,ST7735_WHITE); 
+  tft.drawLine(65,0,65,10,ST7735_WHITE);
+  tft.drawLine(85,0,85,10,ST7735_WHITE);
+  tft.drawLine(105,0,105,10,ST7735_WHITE);    
     
     
     
-    for(i=1;i<181;i++){
+    for(i=0;i<181;i++){
       time = millis();
       sensorReading = getReadingAverage(time);
-      pixelHeight[i] = (sensorReading/scale); // 5/1023 is the conversion factor. Just making everything is scaled properly
-      //if (pixelHeight[i] > maxVolt) //a voltage that is greater than the maximum allowed by user will cap off
+      //sensorReading = (sensorReading * 5/1023)
+      //sensorReading /= 5;
+      //sensorReading *= 128;
+      sensorReading *= (12.5*128);
+      sensorReading /= (1023*5);
+      
+      Serial.println(sensorReading);      
+      
+      disp = (sensorReading*640)/(1023*maxVolt);// sensorReading is multiplied by 5/1023 to get voltage. Then voltage divided the maximum voltage (i.e. 1V/6V) is multiplied by total number of pixels
+      pixelHeight[i] = disp;// is the conversion factor. Just making everything is scaled properly
+     // if (pixelHeight[i] > maxVolt) //a voltage that is greater than the maximum allowed by user will cap off
 	  //pixelHeight[i] = tft.height();
       
       tft.drawLine(baseLine+pixelHeight[i-1],i-1,baseLine+pixelHeight[i],i,lineColor);
+      
+      
       if (pulse && pixelHeight[i]>=40) {
-        pulseRate = millis();
+       pulseRate = millis();
        pulseRate = (600000000/(pulseRate-beatTime));
-       Serial.println(pulseRate);
+       //Serial.println(pulseRate);
 	   tft.print(pulseRate); 
        beatTime = pulseRate;
        pulse = false;
@@ -116,6 +137,7 @@ void displayReading() {
       else if (pixelHeight[i]<=10)
        pulse = true;
     }
+ 
  
 
     
