@@ -38,7 +38,7 @@ int i = 0;
   tft.fillScreen(backColor); //Start with the screen completely black
 
   tft.setCursor(120, 5);
-  tft.setTextColor(ST7735_WHITE, lineColor);
+  tft.setTextColor(ST7735_WHITE, ST7735_BLACK);
   tft.setTextSize(1);
   tft.setTextWrap(false);
   
@@ -64,22 +64,22 @@ void loop() {
   boolean pulse = true;
 
      
-    for(i=1;i<160;i++){
+    for(i=0;i<160;i++){
       tft.drawLine(i,127-(baseLine+pixelHeight[i]),i-1,127-(baseLine+pixelHeight[i-1]),backColor);//erasing the old lines by tracing over them in the background color
     }
 
-tft.drawLine(160,25,150,25, lineColor);
-tft.drawLine(160,50,150,50, lineColor);
-tft.drawLine(160,75,150,75, lineColor);
-tft.drawLine(160,100,150,100, lineColor);
-tft.drawLine(160,125,150,125, lineColor);
+tft.drawLine(160,103,150,103, lineColor);
+tft.drawLine(160,78,150,78, lineColor);
+tft.drawLine(160,53,150,53, lineColor);
+tft.drawLine(160,28,150,28, lineColor);
+tft.drawLine(160,3,150,3, lineColor);
 
 
 
-    for(i=1;i<160;i++){
+    for(i=0;i<160;i++){
       time = millis();
       sensorReading = getReadingAverage(time);
-sensorReading=abs(sensorReading);      
+//sensorReading=abs(sensorReading);      
       disp = (double(sensorReading)*double(640))/(double(1023)*double(maxVolt));// sensorReading is multiplied by 5/1023 to get voltage. Then voltage divided the maximum voltage (i.e. 1V/6V) is multiplied by total number of pixels in the height
       
       pixelHeight[i] = disp;// is the conversion factor. Just making everything is scaled properly
