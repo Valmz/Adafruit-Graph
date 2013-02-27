@@ -55,10 +55,9 @@ int getReadingAverage (unsigned long timeInit) {
 }
  
 void loop() {  
-  int sensorReading=0,pixelHeight[160], disp=0, i=0,j=1,h;
+  int sensorReading=0,pixelHeight[160], disp=0, i=0,j=1,h, change = 0;
   long time=0;
   double average=0;
-  boolean pulse = true;
   unsigned long pulseRate=0, beatTime=0;
 
      
@@ -85,23 +84,12 @@ tft.drawLine(160,3,150,3, lineColor);
 	  pixelHeight[i] = tft.height()-baseLine;
       tft.drawLine(i,127-(baseLine+pixelHeight[i]),i-1,127-(baseLine+pixelHeight[i-1]),lineColor);
       
-
-
-      recent[k%8] = pixelHeight[i];
-      k+=1;   
-      for (h=0;h<8;h++){
-      average += recent[((k-h)%8)];
-      }
-      average /= 8;
-      Serial.print(average);
-      Serial.print(" and the current pixel height is: ");
-      Serial.print(pixelHeight[i]);
-      Serial.print("and the percentage is: ");
-      Serial.println((double(pixelHeight[i])*100/double(average)));
+      if (i > 3) change = (2*pixelHeight[i-1])-pixelHeight[i] - pixelHeight[i-2];
       
-      if (pulse && (pixelHeight[i]>=threshold*double(128)/double(maxVolt))) {     
-       pulseRate = millis();
-       if (beatTime !=0)
+      Serial.println(disp);
+      if ((change > 23) && (change < 256) && ((millis() - beatTime)>300)) {
+      pulseRate = millis();
+      if (beatTime !=0) {
        
            tft.setCursor(120, 5);
            tft.setTextColor(ST7735_BLACK, ST7735_BLACK);
@@ -109,12 +97,11 @@ tft.drawLine(160,3,150,3, lineColor);
            tft.setCursor(120, 5);
            tft.setTextColor(ST7735_WHITE, ST7735_BLACK);           
        	   tft.print((60000/(pulseRate-beatTime))); 
-       beatTime = pulseRate;
-       pulse = false;
+      }     
+        beatTime = pulseRate;
       }
-      else if ((pixelHeight[i]<threshold*double(128)/double(maxVolt)) && pulse==false)
-      pulse = true;
+
     }
  
 
-} 
+}  
