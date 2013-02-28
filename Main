@@ -87,7 +87,7 @@ tft.drawLine(160,3,150,3, lineColor);
       if (i > 3) change = (2*pixelHeight[i-1])-pixelHeight[i] - pixelHeight[i-2];
       
       Serial.println(disp);
-      if ((change > 23) && (change < 256) && ((millis() - beatTime)>300)) {
+      if ((change > 25) && (change < 256) && ((millis() - beatTime)>250)) {
       pulseRate = millis();
       if (beatTime !=0) {
        
