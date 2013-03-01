@@ -55,7 +55,7 @@ int getReadingAverage (unsigned long timeInit) {
 }
  
 void loop() {  
-  int sensorReading=0,pixelHeight[160], disp=0, i=0,j=1,h, change = 0;
+  int sensorReading=0,pixelHeight[160], i=0,j=1,h, change = 0;
   long time=0;
   double average=0;
   unsigned long pulseRate=0, beatTime=0;
@@ -71,29 +71,28 @@ tft.drawLine(160,53,150,53, lineColor);
 tft.drawLine(160,28,150,28, lineColor);
 tft.drawLine(160,3,150,3, lineColor);
 
+      time = millis();
+      sensorReading = getReadingAverage(time);   
+      pixelHeight[0] = (double(sensorReading)*double(640))/(double(1023)*double(maxVolt));// sensorReading is multiplied by 5/1023 to get voltage. Then voltage divided the maximum voltage (i.e. 1V/6V) is multiplied by total number of pixels in the height
 
-
-    for(i=0;i<160;i++){
+    for(i=1;i<160;i++){
       time = millis();
       sensorReading = getReadingAverage(time);
 //sensorReading=abs(sensorReading);      
-      disp = (double(sensorReading)*double(640))/(double(1023)*double(maxVolt));// sensorReading is multiplied by 5/1023 to get voltage. Then voltage divided the maximum voltage (i.e. 1V/6V) is multiplied by total number of pixels in the height
+      pixelHeight[i] = (double(sensorReading)*double(640))/(double(1023)*double(maxVolt));// sensorReading is multiplied by 5/1023 to get voltage. Then voltage divided the maximum voltage (i.e. 1V/6V) is multiplied by total number of pixels in the height
       
-      pixelHeight[i] = disp;
       if (baseLine + pixelHeight[i] > tft.height()) //a voltage that is greater than the maximum allowed by user will cap off
 	  pixelHeight[i] = tft.height()-baseLine;
       tft.drawLine(i,127-(baseLine+pixelHeight[i]),i-1,127-(baseLine+pixelHeight[i-1]),lineColor);
       
       if (i > 3) change = (2*pixelHeight[i-1])-pixelHeight[i] - pixelHeight[i-2];
       
-      Serial.println(disp);
       if ((change > 25) && (change < 256) && ((millis() - beatTime)>250)) {
       pulseRate = millis();
       if (beatTime !=0) {
        
            tft.setCursor(120, 5);
-           tft.setTextColor(ST7735_BLACK, ST7735_BLACK);
-           tft.print("     ");
+           tft.fillRect(132, 5,5, 7, ST7735_BLACK);
            tft.setCursor(120, 5);
            tft.setTextColor(ST7735_WHITE, ST7735_BLACK);           
        	   tft.print((60000/(pulseRate-beatTime))); 
@@ -104,4 +103,4 @@ tft.drawLine(160,3,150,3, lineColor);
     }
  
 
-}  
+} 
