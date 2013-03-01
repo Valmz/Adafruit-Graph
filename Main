@@ -33,6 +33,7 @@ int i = 0;
   tft.initR(INITR_REDTAB);   // initialize a ST7735R chip, red tab 
   tft.setRotation(rotation);
   tft.fillScreen(backColor); //Start with the screen completely black
+  tft.setTextColor(ST7735_WHITE, ST7735_BLACK);
 
   tft.setCursor(120, 5);
   tft.setTextColor(ST7735_WHITE, ST7735_BLACK);
@@ -85,16 +86,15 @@ tft.drawLine(160,3,150,3, lineColor);
 	  pixelHeight[i] = tft.height()-baseLine;
       tft.drawLine(i,127-(baseLine+pixelHeight[i]),i-1,127-(baseLine+pixelHeight[i-1]),lineColor);
       
-      if (i > 3) change = (2*pixelHeight[i-1])-pixelHeight[i] - pixelHeight[i-2];
+      if (i > 3)
+      change = (2*pixelHeight[i-1])-pixelHeight[i] - pixelHeight[i-2];
       
-      if ((change > 25) && (change < 256) && ((millis() - beatTime)>250)) {
+      if ((change > 25) && ((millis() - beatTime)>250)) {
       pulseRate = millis();
       if (beatTime !=0) {
        
-           tft.setCursor(120, 5);
            tft.fillRect(132, 5,5, 7, ST7735_BLACK);
-           tft.setCursor(120, 5);
-           tft.setTextColor(ST7735_WHITE, ST7735_BLACK);           
+           tft.setCursor(120, 5);           
        	   tft.print((60000/(pulseRate-beatTime))); 
       }     
         beatTime = pulseRate;
